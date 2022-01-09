@@ -73,6 +73,29 @@ export class BitPacker {
       }
     }
   }
+
+  static createUnpackIterator = function* <T>(buffer: Uint8Array, unpackFn: UnpackFn<T>) {
+    let index = 0;
+    let bitIndex = 7;
+
+    let pattern = '';
+
+    while (index < buffer.byteLength) {
+      pattern += (buffer[index] & (1 << bitIndex)) >>> bitIndex;
+      bitIndex--;
+
+      const transformedPatternValue = unpackFn(pattern);
+      if (transformedPatternValue !== null) {
+        yield transformedPatternValue;
+        pattern = '';
+      }
+
+      if (bitIndex === -1) {
+        index++;
+        bitIndex = 7;
+      }
+    }
+  }
 }
 
 const packed = BitPacker.pack([
